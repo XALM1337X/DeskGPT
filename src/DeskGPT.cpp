@@ -9,8 +9,9 @@ int main(int argc, char **argv) {
     std::string pattern = "^.*\n+(.*)$";
     std::regex regex(pattern);
     std::smatch match;
-    std::string arg = std::string(argv[1]);
-    std::string command =  "curl -s https://api.openai.com/v1/completions -H \"Content-Type: application/json\" -H \"Authorization: Bearer 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\" -d '{\"model\": \"text-davinci-003\", \"prompt\": \""+arg+"\", \"temperature\": 0, \"max_tokens\": 2048}'";
+    std::string key = std::string(argv[1]);
+    std::string arg = std::string(argv[2]);    
+    std::string command =  "curl -s https://api.openai.com/v1/completions -H \"Content-Type: application/json\" -H \"Authorization: Bearer "+key+"\" -d '{\"model\": \"text-davinci-003\", \"prompt\": \""+arg+"\", \"temperature\": 0, \"max_tokens\": 2048}'";
     FILE* pipe = popen(command.c_str(),"r");  
     if (!pipe) {
         std::cout << "Failed to open pipe" << std::endl;
