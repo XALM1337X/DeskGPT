@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 #include <stdio.h>
-#include "rapidjson/document.h"
 #include <regex>
+#include "rapidjson/document.h"
 
 int main(int argc, char **argv) {
     //TODO: Rewrite this process in a loop that waits for user input and will use the conversations session-id to carry on context with the chat model.
@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     -H \"Authorization: Bearer "+key+"\" \
     -H \"Content-Type: application/json\" \
     -d '{ \"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \""+arg+"\"}]}'";
-    
+
     FILE* pipe = popen(command.c_str(),"r");  
     if (!pipe) {
         std::cout << "Failed to open pipe" << std::endl;
