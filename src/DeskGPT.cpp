@@ -5,10 +5,20 @@
 #include "Core.h"
 
 
-int main(int argc, char **argv) {
-    //TODO: implement session ID system for context preservation.
-    //-H 'Session-Id: <your_session_id>'
-    
+//For Sockets in windows
+//#include <WinSock2.h> // for sockets
+//#include <Ws2tcpip.h> // for internet addresses
+
+//For Sockets in linux. 
+//#include <sys/socket.h> // for sockets
+//#include <arpa/inet.h> // for internet addresses
+//#include <unistd.h> // for close() function
+
+
+
+//TODO: Get TCP Socket server running
+
+int main(int argc, char **argv) {    
     bool exit_flag = false;
     Core* DeskGPTCore = new Core();
     //TODO://Need to read this key from file instead of CLI
@@ -40,5 +50,26 @@ int main(int argc, char **argv) {
     
 }
 
+/*
 
+//TODO: This is linux boilerplate that needs to be implemented in a 
 
+int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+int opt = 1;
+setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
+
+struct sockaddr_in address;
+int addrlen = sizeof(address);
+address.sin_family = AF_INET;
+address.sin_addr.s_addr = INADDR_ANY;
+address.sin_port = htons(PORT);
+
+bind(server_fd, (struct sockaddr *)&address, sizeof(address));
+listen(server_fd, 3);
+int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen);
+char buffer[1024] = {0};
+int valread = recv(new_socket, buffer, 1024, 0);
+send(new_socket, "Hello, client", strlen("Hello, client"), 0);
+close(server_fd);
+
+*/
