@@ -1,2 +1,2 @@
 # DeskGPT
-CLI for GPT-3.X
+C++ server for communicating with GPT-3.5 API.

@@ -10,9 +10,9 @@
 //#include <Ws2tcpip.h> // for internet addresses
 
 //For Sockets in linux. 
-//#include <sys/socket.h> // for sockets
-//#include <arpa/inet.h> // for internet addresses
-//#include <unistd.h> // for close() function
+#include <sys/socket.h> // for sockets
+#include <arpa/inet.h> // for internet addresses
+#include <unistd.h> // for close() function
 
 
 
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 
 /*
 
-//TODO: This is linux boilerplate that needs to be implemented in a 
+//TODO: This is linux boilerplate that needs to be implemented for server
 
 int server_fd = socket(AF_INET, SOCK_STREAM, 0);
 int opt = 1;
