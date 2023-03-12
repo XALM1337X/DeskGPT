@@ -5,6 +5,8 @@
 #include "log.h"
 
 CoreServer::CoreServer() {
+    MainLog::WriteLog("CoreServer::~CoreServer: Initializing...");
+    this->isRunning = new bool(false);
     this->Init();
 }
 
