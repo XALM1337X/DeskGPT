@@ -9,7 +9,22 @@ Core::Core() {
     this->api_key = "";
     this->context_id = "";
 }
+void Core::Init() {
+    this->ReadAPIKey();
+}
+
+
+void Core::ReadAPIKey() {
+    std::ifstream file("/root/GPTMobileServer/src/etc/api.key");
+    if (!file.is_open()) { // use !file.fail() for older compilers
         ErrorLog::WriteLog("Core::Init:error - Failed opening file");
+    } else {
+        std::string line ="";
+        std::getline(file,line);
+        this->api_key = line;
+    }
+}
+
 void Core::DisplayHelp() {
  std::string help_str = ("NAME:\n"  
             "  DeskGPT\n"
