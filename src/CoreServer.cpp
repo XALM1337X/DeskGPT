@@ -10,6 +10,11 @@ CoreServer::CoreServer() {
     this->Init();
 }
 
+CoreServer::~CoreServer() {
+    MainLog::WriteLog("CoreServer::~CoreServer: Shutting Down...");
+    delete(this->isRunning);
+}
+
 
 
 void CoreServer::Init() {
