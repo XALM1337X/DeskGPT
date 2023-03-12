@@ -27,7 +27,7 @@ void Core::Init() {
 
 void Core::ReadAPIKey() {
     std::ifstream file("/root/GPTMobileServer/src/etc/api.key");
-    if (!file.is_open()) { // use !file.fail() for older compilers
+    if (!file.is_open()) {
         ErrorLog::WriteLog("Core::Init:error - Failed opening file");
     } else {
         std::string line ="";
