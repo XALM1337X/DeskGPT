@@ -3,16 +3,22 @@
 #include <iostream>
 #include "rapidjson/document.h"
 #include <regex>
-#include "CoreServer.h"
 #include "log.h"
 #include <fstream>
+#include "CoreServer.h"
 
 Core::Core() {
+    MainLog::WriteLog("Core::~Core: Initializing...");
     this->current_command = "";
     this->api_key = "";
     this->context_id = "";
-    this->CoreServerObj = new (CoreServer);
+    this->CoreServerObj = new CoreServer();
     this->Init();
+}
+
+Core::~Core() {
+    MainLog::WriteLog("Core::~Core: Shutting Down...");
+    delete(this->CoreServerObj);
 }
 void Core::Init() {
     this->ReadAPIKey();
