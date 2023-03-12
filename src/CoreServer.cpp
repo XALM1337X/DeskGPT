@@ -55,4 +55,10 @@ void CoreServer::AcceptHandler() {
     }
 }
 
+
+void CoreServer::StartAcceptHandler() {
+    std::thread accept_thread([this]() {
+        this->AcceptHandler();
+    });
+    accept_thread.detach();
 }
