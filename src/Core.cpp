@@ -3,11 +3,16 @@
 #include <iostream>
 #include "rapidjson/document.h"
 #include <regex>
+#include "CoreServer.h"
 #include "log.h"
+#include <fstream>
+
 Core::Core() {
     this->current_command = "";
     this->api_key = "";
     this->context_id = "";
+    this->CoreServerObj = new (CoreServer);
+    this->Init();
 }
 void Core::Init() {
     this->ReadAPIKey();
