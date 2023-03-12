@@ -1,7 +1,6 @@
 #ifndef _CORE_H_
 #define _CORE_H_
 #include <string>
-#include "log.h"
 class CoreServer;
 class MainLog;
 class ErrorLog;
@@ -9,6 +8,7 @@ class Core {
     //Methods/Functions
     public:
         Core();
+        ~Core();
         static void DisplayHelp();
         void SetCommand(std::string);
         std::string GetCommandString();
