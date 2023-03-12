@@ -78,7 +78,7 @@ void Core::ExecuteCommand() {
     std::regex regex(pattern);
     FILE* pipe = popen(this->GetCommandString().c_str(),"r");  
     if (!pipe) {
-        std::cout << "Failed to open pipe" << std::endl;
+        ErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to open pipe");
     }
     while (!feof(pipe)) {
         if (fgets(buffer, 128, pipe) != NULL){
@@ -89,8 +89,7 @@ void Core::ExecuteCommand() {
     rapidjson::Document document;
     rapidjson::ParseResult result = document.Parse(result_str.c_str());
     if (!result) {
-        std::cout << "Error parsing JSON: " << result.Code() << std::endl;
-        std::cout << result_str << std::endl;
+        ErrorLog::WriteLog("Core::ExecuteCommand:error - Error parsing JSON");
     } else {
         const rapidjson::Value& choices = document["choices"];
         if (choices.IsArray()) {
