@@ -3,11 +3,13 @@
 #include <iostream>
 #include "rapidjson/document.h"
 #include <regex>
+#include "log.h"
 Core::Core() {
     this->current_command = "";
     this->api_key = "";
     this->context_id = "";
 }
+        ErrorLog::WriteLog("Core::Init:error - Failed opening file");
 void Core::DisplayHelp() {
  std::string help_str = ("NAME:\n"  
             "  DeskGPT\n"
