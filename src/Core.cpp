@@ -111,3 +111,9 @@ void Core::ExecuteCommand() {
         }
     }
 }
+
+
+void Core::CleanUp() {
+    //Cleanup memory before shutdown.
+    delete(this->CoreServerObj);
+}
