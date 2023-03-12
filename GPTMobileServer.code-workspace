@@ -59,7 +59,13 @@
 			"xlocmon": "cpp",
 			"xloctime": "cpp",
 			"xtree": "cpp",
-			"fstream": "cpp"
-		}
+			"fstream": "cpp",
+			"ratio": "cpp",
+			"stop_token": "cpp",
+			"thread": "cpp"
+		},
+		"C_Cpp.errorSquiggles": "enabled",
+		"search.quickOpen.includeSymbols": true,
+		"C_Cpp.default.enableConfigurationSquiggles": true
 	}
 }
