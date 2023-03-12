@@ -28,10 +28,6 @@ fi
 
 echo "Succesfully built $EXE_NAME"
 
-echo "Copying DLL's"
-
-
-
 #These DLL paths are for windows builds with cygwin
 #if [[ ! -f $SOURCE_PATH/bin/Release/libstdc++-6.dll ]]; then
 #        cp /cygdrive/c/cygwin64/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libstdc++-6.dll $SOURCE_PATH/bin/Release/
