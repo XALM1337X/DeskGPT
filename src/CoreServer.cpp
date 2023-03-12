@@ -32,4 +32,27 @@ void CoreServer::Init() {
 }
 
 
+
+void CoreServer::AcceptHandler() {    
+    MainLog::WriteLog("Starting Accept Handler");
+    int addrlen = sizeof(this->address);
+    int new_socket;
+    while (true && *this->isRunning) {
+        new_socket = accept(this->server_fd, (struct sockaddr *)&this->address, (socklen_t *)&addrlen);
+        if (new_socket < 0) {
+            MainLog::WriteLog("CoreServer::AcceptHandler:error - Error accepting new connection");
+            std::cout << "Error accepting new connection" << std::endl;;
+            continue;
+        }
+        std::thread handler_thread([new_socket]() {
+            char buffer[1024] = {0};
+            int valread = recv(new_socket, buffer, 1024, 0);
+            std::cout << buffer << std::endl;
+            send(new_socket, "Hello, client", strlen("Hello, client"), 0);
+            close(new_socket);
+        });
+        handler_thread.detach();
+    }
+}
+
 }
