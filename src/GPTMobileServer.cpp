@@ -21,8 +21,6 @@
 int main(int argc, char **argv) {    
     bool exit_flag = false;
     Core* DeskGPTCore = new Core();
-    //TODO://Need to read this key from file instead of CLI
-    DeskGPTCore->api_key = std::string(argv[1]);
     
     std::string user_in = "";
     std::cout <<"Question: ";
