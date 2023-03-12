@@ -1,7 +1,5 @@
 #!/bin/bash
-
 SOURCE_PATH=$1
-EXE_NAME=$2
 pushd $SOURCE_PATH > /dev/null
 rm -f $SOURCE_PATH/obj/Release/*
 rm -f $SOURCE_PATH/bin/Release/*
@@ -15,18 +13,31 @@ for f in *.cpp; do
 	echo "Succesfully compiled $f."
 done
 
+
+#Push object files for GPTMobileServer and not the GPTMobileClientTest
 pushd $SOURCE_PATH/obj/Release/ > /dev/null
 for f in *.o; do
-	object_file+=( $f )
+	if [[ $f != "GPTMobileClientTest.o" ]]; then
+		object_file+=( $f )
+	fi
 done
-echo "Linking object files."
-gcc -L/usr/lib/gcc/x86_64-redhat-linux/8 -o $SOURCE_PATH/bin/Release/$EXE_NAME "${object_file[@]}" -lstdc++
+
+
+echo "Linking GPTMobileServer."
+gcc -L/usr/lib/gcc/x86_64-redhat-linux/8 -o $SOURCE_PATH/bin/Release/GPTMobileServer.exe "${object_file[@]}" -lstdc++ -pthread
 if [[ ! $? -eq 0 ]]; then
-	echo "Failed to link objects, build failed."
+	echo "Failed to link objects, build failed for GPTMobileServer."
 	exit 1
 fi
-
 echo "Succesfully built $EXE_NAME"
+
+
+echo "Linking GPTMobileClientTest."
+gcc -L/usr/lib/gcc/x86_64-redhat-linux/8 -o $SOURCE_PATH/bin/Release/GPTMobileClientTest.exe GPTMobileClientTest.o -lstdc++
+if [[ ! $? -eq 0 ]]; then
+	echo "Failed to link objects, build failed for GPTMobileClientTest."
+	exit 1
+fi
 
 #These DLL paths are for windows builds with cygwin
 #if [[ ! -f $SOURCE_PATH/bin/Release/libstdc++-6.dll ]]; then
