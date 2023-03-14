@@ -2,11 +2,14 @@
 #include <iostream>
 #include <cstring>
 #include <thread>
-#include "log.h"
 
 CoreServer::CoreServer() {
-    MainLog::WriteLog("CoreServer::~CoreServer: Initializing...");
-    this->isRunning = new bool(false);
+    std::cout << "CoreServer::CoreServer: Initializing..." << std::endl;
+    MainLog::WriteLog("CoreServer::CoreServer: Initializing...");
+    this->isRunning = false;
+    this->current_command ="";
+    this->context_id="";
+    this->api_key = "";
     this->Init();
 }
 
