@@ -55,6 +55,20 @@ void CoreServer::AcceptHandler() {
     }
 }
 
+std::string CoreServer::GetCommandString() {
+    return this->current_command;
+}
+
+std::string CoreServer::GetHelp() {
+    std::string help_str = ("NAME:\n"  
+            "  DeskGPT\n"
+            "USAGE:\n" 
+            "  DeskGPT.exe [options] <api_key>\n"
+            "OPTIONS:\n"
+            "  --help or -h     To see this option screen\n"
+            "  --exit           To shutdown program\n");
+    return help_str;
+}
 
 bool CoreServer::ReadAPIKey() {
     std::ifstream file("/root/GPTMobileServer/src/etc/api.key");
