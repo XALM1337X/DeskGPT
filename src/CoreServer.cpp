@@ -37,18 +37,41 @@ void CoreServer::AcceptHandler() {
     MainLog::WriteLog("Starting Accept Handler");
     int addrlen = sizeof(this->address);
     int new_socket;
-    while (true && *this->isRunning) {
+    while (this->isRunning) {
         new_socket = accept(this->server_fd, (struct sockaddr *)&this->address, (socklen_t *)&addrlen);
         if (new_socket < 0) {
             MainLog::WriteLog("CoreServer::AcceptHandler:error - Error accepting new connection");
             std::cout << "Error accepting new connection" << std::endl;;
             continue;
         }
-        std::thread handler_thread([new_socket]() {
-            char buffer[1024] = {0};
-            int valread = recv(new_socket, buffer, 1024, 0);
-            std::cout << buffer << std::endl;
-            send(new_socket, "Hello, client", strlen("Hello, client"), 0);
+
+        std::thread handler_thread([this, new_socket]() {
+            char buffer[(1024*1024*5)] = {0};
+            while(this->isRunning) {
+                int valread = recv(new_socket, buffer, (1024*1024*5), 0);
+                if (valread == -1) {
+                    ErrorLog::WriteLog("CoreServer::AcceptHandler[Lambda:handler_thread]:error - Socket received error. Closing socket: "+std::to_string(new_socket));
+                    break;
+                } else if (valread == 0) {
+                    MainLog::WriteLog("CoreServer::AcceptHandler[Lambda:handler_thread]: - Client has disconnected from socket, shutting down connection...");
+                    break;
+                } else {
+                    std::string msg_str(buffer);
+                    std::string result = this->HandleMessage(msg_str, new_socket);
+                    if (result != "") {
+                        int bytesSent = send(new_socket, result.c_str(), strlen(result.c_str()), 0);
+                        if (bytesSent < 0) {
+                            ErrorLog::WriteLog("CoreServer::AcceptHandler[Lambda:handler_thread]:error - Failed to send message to client socket, shuttdown down connection...");
+                            break;
+                        } else {
+                            std::cout << "Sending GPT response:" <<std::endl;
+                        }                       
+                    } else {
+                        ErrorLog::WriteLog("CoreServer::AcceptHandler:error - HandleMessage failed.");
+                    }
+                }
+                memset(buffer, 0, sizeof(buffer));
+            }
             close(new_socket);
         });
         handler_thread.detach();
