@@ -55,6 +55,40 @@ void CoreServer::AcceptHandler() {
     }
 }
 
+std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
+    std::string ret = "";
+    if (msg == "--shutdown-server") {
+        std::cout << "shutting down" << std::endl;
+        MainLog::WriteLog("CoreServer::HandleMessage:info - Shutting Down");
+        this->StopAcceptHandler();
+    } else if(msg == "--help") {
+        std::string help_msg = this->GetHelp();
+        send(new_socket, help_msg.c_str(), strlen(help_msg.c_str()), 0);
+    } else {
+        this->SetCommand(msg);
+        std::cout <<"Recieved Query: "+msg << std::endl;
+        ret = this->ExecuteCommand();
+    } 
+    return ret;
+}
+
+void CoreServer::SetCommand(std::string command_str) {
+    std::string command = "";
+    if (this->context_id != "") {
+        command =  "curl -s https://api.openai.com/v1/chat/completions \
+        -H \"Session-Id: "+this->context_id+"\" \
+        -H \"Authorization: Bearer "+this->api_key+"\" \
+        -H \"Content-Type: application/json\" \
+        -d '{ \"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \""+command_str+"\"}]}'";
+    } else {
+        command =  "curl -s https://api.openai.com/v1/chat/completions \
+        -H \"Authorization: Bearer "+this->api_key+"\" \
+        -H \"Content-Type: application/json\" \
+        -d '{ \"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \""+command_str+"\"}]}'";
+    }
+
+    this->current_command = command;
+}
 
 std::string CoreServer::ExecuteCommand() {    
     std::string ret ="";       
