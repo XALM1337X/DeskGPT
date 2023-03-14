@@ -11,8 +11,8 @@ CoreServer::CoreServer() {
 }
 
 CoreServer::~CoreServer() {
+    std::cout << "CoreServer::~CoreServer: Shutting Down..." << std::endl;
     MainLog::WriteLog("CoreServer::~CoreServer: Shutting Down...");
-    delete(this->isRunning);
 }
 
 void CoreServer::Init() {
