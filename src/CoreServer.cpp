@@ -56,9 +56,20 @@ void CoreServer::AcceptHandler() {
 }
 
 
-void CoreServer::StartAcceptHandler() {
-    std::thread accept_thread([this]() {
-        this->AcceptHandler();
-    });
-    accept_thread.detach();
+bool CoreServer::ReadAPIKey() {
+    std::ifstream file("/root/GPTMobileServer/src/etc/api.key");
+    if (!file.is_open()) {
+        ErrorLog::WriteLog("Core::ReadAPIKey:error - Failed opening api.key file");
+        return false;
+    } else {
+        std::string line ="";
+        std::getline(file,line);
+        if (line == "") {
+            ErrorLog::WriteLog("CoreServer::ReadAPIKey:error - Api key file is empty.");
+            return false;
+        } else {
+            this->api_key = line;
+        }
+    }
+    return true;
 }
