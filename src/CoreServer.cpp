@@ -31,7 +31,16 @@ void CoreServer::Init() {
     this->StartAcceptHandler();    
 }
 
+void CoreServer::StartAcceptHandler() {
+    std::thread accept_thread([this]() {
+        this->AcceptHandler();
+    });
+    accept_thread.detach();
+}
 
+void CoreServer::StopAcceptHandler() {
+    this->isRunning = false;
+}
 
 void CoreServer::AcceptHandler() {    
     MainLog::WriteLog("Starting Accept Handler");
