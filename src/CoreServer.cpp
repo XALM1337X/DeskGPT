@@ -1,4 +1,9 @@
 #include "CoreServer.h"
+#include "log.h"
+#include "rapidjson/document.h"
+#include <string>
+#include <regex>
+#include <fstream>
 #include <iostream>
 #include <cstring>
 #include <thread>
@@ -84,7 +89,7 @@ void CoreServer::AcceptHandler() {
                 }
                 memset(buffer, 0, sizeof(buffer));
             }
-            close(new_socket);
+            close(new_socket);            
         });
         handler_thread.detach();
     }
