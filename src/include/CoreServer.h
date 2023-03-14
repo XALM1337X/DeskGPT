@@ -4,6 +4,8 @@
 #include <sys/socket.h> // for sockets
 #include <arpa/inet.h> // for internet addresses
 #include <unistd.h> // for close() function
+#include <string>
+#include <atomic>
 class CoreServer {
     public:
         CoreServer();
@@ -12,13 +14,22 @@ class CoreServer {
         void StartAcceptHandler();
         void StopAcceptHandler();
         void AcceptHandler();
+        void SetCommand(std::string);
+        bool ReadAPIKey();
+        std::string HandleMessage(std::string,int);        
+        std::string ExecuteCommand();
+        std::string GetCommandString();
+        std::string GetHelp();
     private:
 
     public:
         int server_fd;
         int opt;
         struct sockaddr_in address;
-        bool* isRunning;
+        std::atomic<bool> isRunning;
+        std::string current_command;
+        std::string context_id;
+        std::string api_key;
     private:
 
 };
