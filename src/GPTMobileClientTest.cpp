@@ -6,8 +6,8 @@
 
 int main(int argc, char const *argv[]) {
     // Create a socket
+    std::string user_input = "";
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-
     if (clientSocket < 0) {
         std::cerr << "Error creating socket" << std::endl;
         return -1;
@@ -24,20 +24,29 @@ int main(int argc, char const *argv[]) {
         std::cerr << "Error connecting to server" << std::endl;
         return -1;
     }
-
-    // Send a message to the server
-    char message[] = "Hello, server!";
-    send(clientSocket, message, strlen(message), 0);
-
-    // Receive a message from the server
-    char buffer[1024] = {0};
-    ssize_t receivedBytes = recv(clientSocket, buffer, sizeof(buffer), 0);
-
-    if (receivedBytes < 0) {
-        std::cerr << "Error receiving message from server" << std::endl;
-    } else {
-        std::cout << "Received message from server: " << buffer << std::endl;
-    }
+    std::cout <<"Query: ";    
+    while (std::getline(std::cin, user_input)) {
+        if (user_input == "--exit") {
+            break;
+        }
+        send(clientSocket, user_input.c_str(), strlen(user_input.c_str()), 0);
+        // Receive a message from the server
+        char buffer[(1024*1024*5)] = {0};
+        ssize_t valread = recv(clientSocket, buffer, sizeof(buffer), 0);
+        if (valread == -1) {            
+            std::cout << "Error reading socket: Shutting down socket client." << std::endl;
+            break;
+        } else if (valread == 0) {
+            std::cout << "Socket shut down from server: disconnecting." << std::endl;
+            break;
+        } else {
+            std::cout << std::string(buffer) << std::endl;
+        }
+        user_input = "";
+        memset(buffer, 0, sizeof(buffer));
+        std::cout << std::endl;
+        std::cout <<"Query: ";
+    }    
 
     // Close the socket
     close(clientSocket);
