@@ -55,6 +55,57 @@ void CoreServer::AcceptHandler() {
     }
 }
 
+
+std::string CoreServer::ExecuteCommand() {    
+    std::string ret ="";       
+    char buffer[128];
+    std::string result_str = "";
+    std::smatch match;
+    std::string pattern = "^.*\n+(.*)$";
+    std::regex regex(pattern);
+    FILE* pipe = popen(this->GetCommandString().c_str(),"r");  
+    if (!pipe) {
+        ErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to open pipe");
+    }
+    while (!feof(pipe)) {
+        if (fgets(buffer, 128, pipe) != NULL){
+            result_str += buffer;
+        }            
+    }
+    pclose(pipe);    
+    rapidjson::Document document;
+    rapidjson::ParseResult result = document.Parse(result_str.c_str());
+    if (!result) {
+        std::cout << "CoreServer::ExecuteCommand:error - Failed to parse JSON";
+        ErrorLog::WriteLog("Core::ExecuteCommand:error - Failed parsing JSON");
+    } else {
+        const rapidjson::Value& choices = document["choices"];
+        if (choices.IsArray()) {
+            const rapidjson::Value& choice = choices[0];
+            if (choice.IsObject()) {
+                const rapidjson::Value& message = choice["message"];
+                if (message.IsObject()) {
+                    const rapidjson::Value& content = message["content"];
+                    if (content.IsString()) {
+                        std::cout << std::endl;
+                        std::string str = std::string(content.GetString());
+                        if (std::regex_match(str, match, regex)) {
+                            ret = match[1];
+                        } else {
+                            ret = str;
+                        }
+                    }
+                }
+            }
+        }
+        const rapidjson::Value& id = document["id"];
+        if (id.IsString()) {
+            this->context_id = id.GetString();
+        }
+    }
+    return ret;
+}
+
 std::string CoreServer::GetCommandString() {
     return this->current_command;
 }
