@@ -17,7 +17,6 @@ CoreServer::CoreServer() {
     MainLog::WriteLog("CoreServer::CoreServer: Initializing...");
     this->isRunning = false;
     this->current_command ="";
-    this->context_id="";
     this->api_key = "";
     this->Init();
 }
