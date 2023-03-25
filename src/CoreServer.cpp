@@ -30,14 +30,14 @@ void CoreServer::Init() {
     if (!this->ReadAPIKey()){
         return;
     }    
-    this->server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    this->server_socket = socket(AF_INET, SOCK_STREAM, 0);
     this->opt = 1;
-    setsockopt(this->server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &this->opt, sizeof(this->opt));    
+    setsockopt(this->server_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &this->opt, sizeof(this->opt));    
     this->address.sin_family = AF_INET;
     this->address.sin_addr.s_addr = INADDR_ANY;
     this->address.sin_port = htons(8080);    
-    bind(this->server_fd, (struct sockaddr *)&this->address, sizeof(this->address));
-    listen(this->server_fd, 3);
+    bind(this->server_socket, (struct sockaddr *)&this->address, sizeof(this->address));
+    listen(this->server_socket, 3);
     this->isRunning = true;
     this->StartAcceptHandler();    
 }
