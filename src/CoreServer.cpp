@@ -151,10 +151,10 @@ std::string CoreServer::ExecuteCommand() {
         return ret;
     }
     rapidjson::Document document;
-    rapidjson::ParseResult result = document.Parse(result_str.c_str());
-    if (!result) {
-        std::cout << "CoreServer::ExecuteCommand:error - Failed to parse JSON";
+    rapidjson::ParseResult result = document.Parse(ex.result.c_str());    
+    if (!result || document.HasMember("error")) {
         ErrorLog::WriteLog("Core::ExecuteCommand:error - Failed parsing JSON");
+        return "Failed parsing JSON";
     } else {
         const rapidjson::Value& choices = document["choices"];
         if (choices.IsArray()) {
@@ -174,10 +174,6 @@ std::string CoreServer::ExecuteCommand() {
                     }
                 }
             }
-        }
-        const rapidjson::Value& id = document["id"];
-        if (id.IsString()) {
-            this->context_id = id.GetString();
         }
     }
     return ret;
