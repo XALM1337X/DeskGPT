@@ -131,19 +131,11 @@ std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
 }
 
 void CoreServer::SetCommand(std::string command_str) {
-    std::string command = "";
-    if (this->context_id != "") {
-        command =  "curl -s https://api.openai.com/v1/chat/completions \
-        -H \"Session-Id: "+this->context_id+"\" \
-        -H \"Authorization: Bearer "+this->api_key+"\" \
-        -H \"Content-Type: application/json\" \
-        -d '{ \"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \""+command_str+"\"}]}'";
-    } else {
-        command =  "curl -s https://api.openai.com/v1/chat/completions \
-        -H \"Authorization: Bearer "+this->api_key+"\" \
-        -H \"Content-Type: application/json\" \
-        -d '{ \"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \""+command_str+"\"}]}'";
-    }
+    std::string command =  "curl -s https://api.openai.com/v1/chat/completions " 
+                           "-H \"Authorization: Bearer "+this->api_key+"\" " 
+                           "-H \"Content-Type: application/json\" " 
+                           "-d '{ \"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \""+command_str+"\"}]}' ";
+    
 
     this->current_command = command;
 }
