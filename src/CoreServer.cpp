@@ -106,16 +106,25 @@ void CoreServer::AcceptHandler() {
 
 std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
     std::string ret = "";
+    std::string pattern = "(POST|GET|PUT|HEAD|DELETE|CONNECT|OPTIONS|TRACE)\\s+([a-zA-Z\\/.-]+)\\s+([a-zA-Z]+)\\/([0-9.]+)\r*$";
+    std::regex regex(pattern);
+    std::smatch match;
+    std::vector splt_str = BPStrings::SplitString(msg,'\n');
+    
     if (msg == "--shutdown-server") {
         std::cout << "shutting down" << std::endl;
         MainLog::WriteLog("CoreServer::HandleMessage:info - Shutting Down");
         this->StopAcceptHandler();
+        ret = "server-shutdown-procedure";
     } else if(msg == "--help") {
         std::string help_msg = this->GetHelp();
         send(new_socket, help_msg.c_str(), strlen(help_msg.c_str()), 0);
+    } else if (std::regex_match(splt_str[0], match, regex)) {
+        //Handle HTTP request
+        send(new_socket, splt_str[0].c_str(), strlen(splt_str[0].c_str()), 0);
+        //TODO: Send HTTP response to client
     } else {
         this->SetCommand(msg);
-        std::cout <<"Recieved Query: "+msg << std::endl;
         ret = this->ExecuteCommand();
     } 
     return ret;
