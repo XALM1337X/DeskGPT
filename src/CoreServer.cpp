@@ -58,7 +58,7 @@ void CoreServer::AcceptHandler() {
     int addrlen = sizeof(this->address);
     int new_socket;
     while (this->isRunning) {
-        new_socket = accept(this->server_fd, (struct sockaddr *)&this->address, (socklen_t *)&addrlen);
+        new_socket = accept(this->server_socket, (struct sockaddr *)&this->address, (socklen_t *)&addrlen);
         if (new_socket < 0) {
             MainLog::WriteLog("CoreServer::AcceptHandler:error - Error accepting new connection");
             std::cout << "Error accepting new connection" << std::endl;;
