@@ -82,13 +82,13 @@ void CoreServer::AcceptHandler() {
                         if (result == "server-shutdown-procedure") {
                             send(new_socket, std::string("").c_str(), strlen(std::string("").c_str()), 0);
                         } else {
-                        int bytesSent = send(new_socket, result.c_str(), strlen(result.c_str()), 0);
-                        if (bytesSent < 0) {
-                            ErrorLog::WriteLog("CoreServer::AcceptHandler[Lambda:handler_thread]:error - Failed to send message to client socket, shuttdown down connection...");
-                            break;
-                        } else {
-                            std::cout << "Sending GPT response:" <<std::endl;
-                        }                       
+                            int bytesSent = send(new_socket, result.c_str(), strlen(result.c_str()), 0);
+                            if (bytesSent < 0) {
+                                ErrorLog::WriteLog("CoreServer::AcceptHandler[Lambda:handler_thread]:error - Failed to send message to client socket, shuttdown down connection...");
+                                break;
+                            } else {
+                                std::cout << "Sending GPT response:" <<std::endl;
+                            }   
                         }
                     } else {
                         ErrorLog::WriteLog("CoreServer::AcceptHandler:error - HandleMessage failed.");
@@ -123,7 +123,7 @@ std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
         //Handle HTTP request
         send(new_socket, splt_str[0].c_str(), strlen(splt_str[0].c_str()), 0);
         //TODO: Send HTTP response to client
-    } else {
+    } else {        
         this->SetCommand(msg);
         ret = this->ExecuteCommand();
     } 
@@ -141,7 +141,7 @@ void CoreServer::SetCommand(std::string command_str) {
 }
 
 std::string CoreServer::ExecuteCommand() {    
-    std::string ret ="";       
+    std::string ret ="";      
     std::smatch match;
     std::string pattern = "^.*\n+(.*)$";
     std::regex regex(pattern);
@@ -149,33 +149,33 @@ std::string CoreServer::ExecuteCommand() {
     if (ex.exit_code != 0) {
         ErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to execute command.");
         return ret;
-    }
+    }    
     rapidjson::Document document;
     rapidjson::ParseResult result = document.Parse(ex.result.c_str());    
     if (!result || document.HasMember("error")) {
         ErrorLog::WriteLog("Core::ExecuteCommand:error - Failed parsing JSON");
         return "Failed parsing JSON";
     } else {
-        const rapidjson::Value& choices = document["choices"];
-        if (choices.IsArray()) {
+        const rapidjson::Value& choices = document["choices"];        
+        if (choices.IsArray()) {        
             const rapidjson::Value& choice = choices[0];
-            if (choice.IsObject()) {
-                const rapidjson::Value& message = choice["message"];
-                if (message.IsObject()) {
-                    const rapidjson::Value& content = message["content"];
-                    if (content.IsString()) {
+            if (choice.IsObject()) {        
+                const rapidjson::Value& message = choice["message"];        
+                if (message.IsObject()) {        
+                    const rapidjson::Value& content = message["content"];        
+                    if (content.IsString()) {        
                         std::cout << std::endl;
                         std::string str = std::string(content.GetString());
-                        if (std::regex_match(str, match, regex)) {
+                        if (std::regex_match(str, match, regex)) {        
                             ret = match[1];
-                        } else {
+                        } else {        
                             ret = str;
                         }
                     }
                 }
             }
         }
-    }
+    } 
     return ret;
 }
 
@@ -195,19 +195,16 @@ std::string CoreServer::GetHelp() {
 }
 
 bool CoreServer::ReadAPIKey() {
-    std::ifstream file("/root/GPTMobileServer/src/etc/api.key");
-    if (!file.is_open()) {
-        ErrorLog::WriteLog("Core::ReadAPIKey:error - Failed opening api.key file");
-        return false;
-    } else {
-        std::string line ="";
-        std::getline(file,line);
-        if (line == "") {
-            ErrorLog::WriteLog("CoreServer::ReadAPIKey:error - Api key file is empty.");
-            return false;
+    std::string key = "";
+    bool success = BPFile::FileReadString("/root/GPTMobileServer/src/etc/api.key", &key);
+    if (!success || key == "") {
+        if (key == "") {    
+            ErrorLog::WriteLog("Core::ReadAPIKey:error - api.key file is empty.");
         } else {
-            this->api_key = line;
-        }
+            ErrorLog::WriteLog("Core::ReadAPIKey:error - Failed to read api.key file");
+        }        
+        return false;
     }
+    this->api_key = key;    
     return true;
 }
