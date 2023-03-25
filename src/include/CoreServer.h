@@ -6,6 +6,7 @@
 #include <unistd.h> // for close() function
 #include <string>
 #include <atomic>
+#include <vector>
 class CoreServer {
     public:
         CoreServer();
@@ -23,12 +24,11 @@ class CoreServer {
     private:
 
     public:
-        int server_fd;
+        int server_socket;
         int opt;
         struct sockaddr_in address;
         std::atomic<bool> isRunning;
         std::string current_command;
-        std::string context_id;
         std::string api_key;
     private:
 
