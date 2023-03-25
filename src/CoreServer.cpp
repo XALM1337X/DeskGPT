@@ -1,5 +1,8 @@
 #include "CoreServer.h"
 #include "log.h"
+#include "BPTools/BPStrings.h"
+#include "BPTools/BPFile.h"
+#include "BPTools/BPExec.h"
 #include "rapidjson/document.h"
 #include <string>
 #include <regex>
@@ -7,6 +10,7 @@
 #include <iostream>
 #include <cstring>
 #include <thread>
+#include <vector>
 
 CoreServer::CoreServer() {
     std::cout << "CoreServer::CoreServer: Initializing..." << std::endl;
