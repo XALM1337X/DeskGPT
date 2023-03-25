@@ -34,7 +34,19 @@ int main(int argc, char const *argv[]) {
             system("clear");
             skip = true;
         } else if (user_input == "--test_http") {
-        }
+            std::string http_msg = "POST /cgi-bin/process.cgi HTTP/1.1\r\n"
+                                   "User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT)\r\n"
+                                   "Host: www.tutorialspoint.com\r\n"
+                                   "Content-Type: text/xml; charset=utf-8\r\n"
+                                   "Content-Length: length\r\n"
+                                   "Accept-Language: en-us\r\n"
+                                   "Accept-Encoding: gzip, deflate\r\n"
+                                   "Connection: Keep-Alive\r\n"
+                                   "\r\n"
+                                   "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
+                                   "<string xmlns=\"http://clearforest.com/\">string</string>\r\n";
+            send(clientSocket, http_msg.c_str(), strlen(http_msg.c_str()), 0);
+        } else {
         send(clientSocket, user_input.c_str(), strlen(user_input.c_str()), 0);
         // Receive a message from the server
         char buffer[(1024*1024*5)] = {0};
