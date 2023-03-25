@@ -142,21 +142,14 @@ void CoreServer::SetCommand(std::string command_str) {
 
 std::string CoreServer::ExecuteCommand() {    
     std::string ret ="";       
-    char buffer[128];
-    std::string result_str = "";
     std::smatch match;
     std::string pattern = "^.*\n+(.*)$";
     std::regex regex(pattern);
-    FILE* pipe = popen(this->GetCommandString().c_str(),"r");  
-    if (!pipe) {
-        ErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to open pipe");
+    BPExecResult ex = BPExec::Exec(this->GetCommandString());
+    if (ex.exit_code != 0) {
+        ErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to execute command.");
+        return ret;
     }
-    while (!feof(pipe)) {
-        if (fgets(buffer, 128, pipe) != NULL){
-            result_str += buffer;
-        }            
-    }
-    pclose(pipe);    
     rapidjson::Document document;
     rapidjson::ParseResult result = document.Parse(result_str.c_str());
     if (!result) {
