@@ -79,6 +79,9 @@ void CoreServer::AcceptHandler() {
                     std::string msg_str(buffer);
                     std::string result = this->HandleMessage(msg_str, new_socket);
                     if (result != "") {
+                        if (result == "server-shutdown-procedure") {
+                            send(new_socket, std::string("").c_str(), strlen(std::string("").c_str()), 0);
+                        } else {
                         int bytesSent = send(new_socket, result.c_str(), strlen(result.c_str()), 0);
                         if (bytesSent < 0) {
                             ErrorLog::WriteLog("CoreServer::AcceptHandler[Lambda:handler_thread]:error - Failed to send message to client socket, shuttdown down connection...");
