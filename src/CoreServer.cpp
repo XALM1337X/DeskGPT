@@ -89,8 +89,11 @@ void CoreServer::AcceptHandler() {
                         } else {
                             std::cout << "Sending GPT response:" <<std::endl;
                         }                       
+                        }
                     } else {
                         ErrorLog::WriteLog("CoreServer::AcceptHandler:error - HandleMessage failed.");
+                        std::string err_str = "Internal server error";
+                        send(new_socket, err_str.c_str(), strlen(err_str.c_str()), 0);
                     }
                 }
                 memset(buffer, 0, sizeof(buffer));
