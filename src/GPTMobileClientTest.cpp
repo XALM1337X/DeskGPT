@@ -47,22 +47,25 @@ int main(int argc, char const *argv[]) {
                                    "<string xmlns=\"http://clearforest.com/\">string</string>\r\n";
             send(clientSocket, http_msg.c_str(), strlen(http_msg.c_str()), 0);
         } else {
-        send(clientSocket, user_input.c_str(), strlen(user_input.c_str()), 0);
-        // Receive a message from the server
-        char buffer[(1024*1024*5)] = {0};
-        ssize_t valread = recv(clientSocket, buffer, sizeof(buffer), 0);
-        if (valread == -1) {            
-            std::cout << "Error reading socket: Shutting down socket client." << std::endl;
-            break;
-        } else if (valread == 0) {
-            std::cout << "Socket shut down from server: disconnecting." << std::endl;
-            break;
-        } else {
-            std::cout << std::string(buffer) << std::endl;
+            send(clientSocket, user_input.c_str(), strlen(user_input.c_str()), 0);
+        }
+        if (!skip) {
+            // Receive a message from the server
+            ssize_t valread = recv(clientSocket, buffer, sizeof(buffer), 0);
+            if (valread == -1) {            
+                std::cout << "Error reading socket: Shutting down socket client." << std::endl;
+                break;
+            } else if (valread == 0) {
+                std::cout << "Socket shut down from server: disconnecting." << std::endl;
+                break;
+            } else {
+                std::cout << std::string(buffer) << std::endl;
+            }
+            std::cout << std::endl;
         }
         user_input = "";
+        skip = false;
         memset(buffer, 0, sizeof(buffer));
-        std::cout << std::endl;
         std::cout <<"Query: ";
     }    
 
