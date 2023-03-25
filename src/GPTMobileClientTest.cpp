@@ -7,6 +7,8 @@
 int main(int argc, char const *argv[]) {
     // Create a socket
     std::string user_input = "";
+    bool skip = false;
+    char buffer[(1024*1024*5)] = {0};
     int clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket < 0) {
         std::cerr << "Error creating socket" << std::endl;
