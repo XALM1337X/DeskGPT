@@ -30,6 +30,10 @@ int main(int argc, char const *argv[]) {
     while (std::getline(std::cin, user_input)) {
         if (user_input == "--exit") {
             break;
+        } else if (user_input == "--clear") {
+            system("clear");
+            skip = true;
+        } else if (user_input == "--test_http") {
         }
         send(clientSocket, user_input.c_str(), strlen(user_input.c_str()), 0);
         // Receive a message from the server
