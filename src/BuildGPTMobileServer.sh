@@ -1,15 +1,30 @@
 #!/bin/bash
 SOURCE_PATH=$1
-BP_TOOLS_PATH=$2
+BP_BUILD_FLAG=$2
+BP_TOOLS_PATH=$3
+rm -f $SOURCE_PATH/obj/Release/*
+rm -f $SOURCE_PATH/bin/Release/*
+rm -f $SOURCE_PATH/include/BP*.h
+rm -f $SOURCE_PATH/lib/libBP*
+
+if [[ $2 == "true" ]]; then
+	pushd $BP_TOOLS_PATH/src > /dev/null
+	./BuildBPTools.sh $(pwd)
+	popd > /dev/null
+fi
+
+
 pushd $SOURCE_PATH > /dev/null
 
+
+
 #Copy BPTools include file and library to GPTMobileServer/src/include and /lib respectively
+
 cp $BP_TOOLS_PATH/src/include/*.h $SOURCE_PATH/include/
 cp $BP_TOOLS_PATH/src/lib/libBPTools.so $SOURCE_PATH/lib/
 
 
-rm -f $SOURCE_PATH/obj/Release/*
-rm -f $SOURCE_PATH/bin/Release/*
+
 for f in *.cpp; do
 	file_name=$(echo $f | cut -d "." -f 1)
 	gcc  -Wall -O2 -std=c++17 -I"$SOURCE_PATH/include" -c "$SOURCE_PATH/$f" -o $SOURCE_PATH/obj/Release/$file_name.o
