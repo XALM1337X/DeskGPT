@@ -61,6 +61,8 @@ if [[ ! $? -eq 0 ]]; then
 	echo "Failed to link objects, build failed for GPTMobileClientTest."
 	exit 1
 fi
+popd > /dev/null
+popd > /dev/null
 ################################################################################################################################
 #These DLL paths are for windows builds with cygwin
 #if [[ ! -f $SOURCE_PATH/bin/Release/libstdc++-6.dll ]]; then
