@@ -1,15 +1,15 @@
 #include "Core.h"
-#include "log.h"
+#include "BPLog.h"
 #include "CoreServer.h"
 
 Core::Core() {
-    MainLog::WriteLog("Core::~Core: Initializing...");
+    BPMainLog::WriteLog("Core::~Core: Initializing...","/root/GPTMobileServer/src/logs/MainLog.log");
     this->CoreServerObj = new CoreServer();
     this->Init();
 }
 
 Core::~Core() {
-    MainLog::WriteLog("Core::~Core: Shutting Down...");
+    BPMainLog::WriteLog("Core::~Core: Shutting Down...","/root/GPTMobileServer/src/logs/MainLog.log");
     delete(this->CoreServerObj);
 }
 void Core::Init() {

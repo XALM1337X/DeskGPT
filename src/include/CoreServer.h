@@ -17,6 +17,7 @@ class CoreServer {
         void ToggleDebugMode();
         void AcceptHandler();
         void SetCommand(std::string);
+        void LaunchHandlerInternals(int);
         bool ReadAPIKey();
         std::string HandleMessage(std::string,int);        
         std::string ExecuteGPTCommand();

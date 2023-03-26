@@ -1,5 +1,5 @@
 #include "CoreServer.h"
-#include "log.h"
+#include "BPLog.h"
 #include "BPStrings.h"
 #include "BPFile.h"
 #include "BPExec.h"
@@ -14,7 +14,7 @@
 
 CoreServer::CoreServer() {
     std::cout << "CoreServer::CoreServer: Initializing..." << std::endl;
-    MainLog::WriteLog("CoreServer::CoreServer: Initializing...");
+    BPMainLog::WriteLog("CoreServer::CoreServer: Initializing...","/root/GPTMobileServer/src/logs/MainLog.log");
     this->isRunning = false;
     this->debug_mode = false;
     this->current_command ="";
@@ -24,7 +24,7 @@ CoreServer::CoreServer() {
 
 CoreServer::~CoreServer() {
     std::cout << "CoreServer::~CoreServer: Shutting Down..." << std::endl;
-    MainLog::WriteLog("CoreServer::~CoreServer: Shutting Down...");
+    BPMainLog::WriteLog("CoreServer::~CoreServer: Shutting Down...","/root/GPTMobileServer/src/logs/MainLog.log");
 }
 
 void CoreServer::Init() {
@@ -63,63 +63,67 @@ void CoreServer::ToggleDebugMode() {
 }
 
 void CoreServer::AcceptHandler() {    
-    MainLog::WriteLog("Starting Accept Handler");
+    BPMainLog::WriteLog("Starting Accept Handler","/root/GPTMobileServer/src/logs/MainLog.log");
     int addrlen = sizeof(this->address);
     int new_socket;
     while (this->isRunning) {
         new_socket = accept(this->server_socket, (struct sockaddr *)&this->address, (socklen_t *)&addrlen);
         if (new_socket < 0) {
-            MainLog::WriteLog("CoreServer::AcceptHandler:error - Error accepting new connection");
+            BPErrorLog::WriteLog("CoreServer::AcceptHandler:error - Error accepting new connection","/root/GPTMobileServer/src/logs/ErrorLog.log");
             std::cout << "Error accepting new connection" << std::endl;;
             continue;
         }
-
         std::thread handler_thread([this, new_socket]() {
-            char buffer[(1024*1024*5)] = {0};
-            while(this->isRunning) {
-                int valread = recv(new_socket, buffer, (1024*1024*5), 0);
-                if (valread == -1) {
-                    ErrorLog::WriteLog("CoreServer::AcceptHandler[Lambda:handler_thread]:error - Socket received error. Closing socket: "+std::to_string(new_socket));
-                    break;
-                } else if (valread == 0) {
-                    MainLog::WriteLog("CoreServer::AcceptHandler[Lambda:handler_thread]: - Client has disconnected from socket, shutting down connection...");
-                    break;
-                } else {
-                    std::string msg_str(buffer);
-                    std::string result = this->HandleMessage(msg_str, new_socket);
-                    if (result != "") {
-                        if (result == "server-shutdown-procedure") {
-                            send(new_socket, std::string("").c_str(), strlen(std::string("").c_str()), 0);
-                            this->StopAcceptHandler();
-                        } else if (result == "debug-mode-toggle") {
-                            std::cout << std::to_string(this->debug_mode) << std::endl;
-                            send(new_socket, std::string("Debug mode toggled.").c_str(), strlen(std::string("Debug mode toggled.").c_str()), 0);
-                        } else {
-                            int bytesSent = send(new_socket, result.c_str(), strlen(result.c_str()), 0);
-                            if (bytesSent < 0) {
-                                ErrorLog::WriteLog("CoreServer::AcceptHandler[Lambda:handler_thread]:error - Failed to send message to client socket, shuttdown down connection...");
-                                break;
-                            } else {
-                                if (this->debug_mode) {
-                                    std::cout << "Response Sent:" <<std::endl;
-                                }                                
-                            }   
-                        }
-                    } else {
-                        ErrorLog::WriteLog("CoreServer::AcceptHandler:error - HandleMessage failed.");
-                        if (this->debug_mode) {
-                            std::cout << buffer << std::endl;
-                        }                        
-                        std::string err_str = "Internal server error";
-                        send(new_socket, err_str.c_str(), strlen(err_str.c_str()), 0);
-                    }
-                }
-                memset(buffer, 0, sizeof(buffer));
-            }
-            close(new_socket);            
+           this->LaunchHandlerInternals(new_socket);
         });
         handler_thread.detach();
     }
+}
+
+void CoreServer::LaunchHandlerInternals(int socket) {
+    //TODO: Replace all send() functions data to HTTP messages
+    char buffer[(1024*1024*5)] = {0};
+    while(this->isRunning) {
+        int valread = recv(socket, buffer, (1024*1024*5), 0);
+        if (valread == -1) {
+            BPErrorLog::WriteLog("CoreServer::LaunchHandlerThread[Lambda:handler_thread]:error - Socket received error. Closing socket: "+std::to_string(socket),"/root/GPTMobileServer/src/logs/ErrorLog.log");
+            break;
+        } else if (valread == 0) {
+            BPMainLog::WriteLog("CoreServer::LaunchHandlerThread[Lambda:handler_thread]: - Client has disconnected from socket, shutting down connection...","/root/GPTMobileServer/src/logs/MainLog.log");
+            break;
+        } else {
+            std::string msg_str(buffer);
+            std::string result = this->HandleMessage(msg_str, socket);
+            if (result != "") {
+                if (result == "server-shutdown-procedure") {
+                    send(socket, std::string("").c_str(), strlen(std::string("").c_str()), 0);
+                    this->StopAcceptHandler();
+                } else if (result == "debug-mode-toggle") {
+                    std::cout << std::to_string(this->debug_mode) << std::endl;
+                    send(socket, std::string("Debug mode toggled.").c_str(), strlen(std::string("Debug mode toggled.").c_str()), 0);
+                } else {
+                    int bytesSent = send(socket, result.c_str(), strlen(result.c_str()), 0);
+                    if (bytesSent < 0) {
+                        BPErrorLog::WriteLog("CoreServer::LaunchHandlerThread[Lambda:handler_thread]:error - Failed to send message to client socket, shuttdown down connection...","/root/GPTMobileServer/src/logs/ErrorLog.log");
+                        break;
+                    } else {
+                        if (this->debug_mode) {
+                            std::cout << "Response Sent:" <<std::endl;
+                        }                                
+                    }   
+                }
+            } else {
+                BPErrorLog::WriteLog("CoreServer::LaunchHandlerThread:error - HandleMessage failed.","/root/GPTMobileServer/src/logs/ErrorLog.log");
+                if (this->debug_mode) {
+                    std::cout << buffer << std::endl;
+                }                        
+                std::string err_str = "Internal server error";
+                send(socket, err_str.c_str(), strlen(err_str.c_str()), 0);
+            }
+        }
+        memset(buffer, 0, sizeof(buffer));
+    }
+    close(socket); 
 }
 
 std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
@@ -130,7 +134,7 @@ std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
     std::vector splt_str = BPStrings::SplitString(msg,'\n');
     //std::cout << msg << std::endl;
     if (msg == "--shutdown-server") {
-        MainLog::WriteLog("CoreServer::HandleMessage:info - Shutting Down");
+        BPMainLog::WriteLog("CoreServer::HandleMessage:info - Shutting Down","/root/GPTMobileServer/src/logs/MainLog.log");
         if (this->debug_mode) {
             std::cout << "shutting down" << std::endl;
         }        
@@ -168,13 +172,13 @@ std::string CoreServer::ExecuteGPTCommand() {
     std::regex regex(pattern);
     BPExecResult ex = BPExec::Exec(this->GetCommandString());
     if (ex.exit_code != 0) {
-        ErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to execute command.");
+        BPErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to execute command.","/root/GPTMobileServer/src/logs/ErrorLog.log");
         return ret;
     }    
     rapidjson::Document document;
     rapidjson::ParseResult result = document.Parse(ex.result.c_str());    
     if (!result || document.HasMember("error")) {
-        ErrorLog::WriteLog("Core::ExecuteCommand:error - Failed parsing JSON");
+        BPErrorLog::WriteLog("Core::ExecuteCommand:error - Failed parsing JSON","/root/GPTMobileServer/src/logs/ErrorLog.log");
         return "Failed parsing JSON";
     } else {
         const rapidjson::Value& choices = document["choices"];        
@@ -222,9 +226,9 @@ bool CoreServer::ReadAPIKey() {
     bool success = BPFile::FileReadString("/root/GPTMobileServer/src/etc/api.key", &key);
     if (!success || key == "") {
         if (key == "") {    
-            ErrorLog::WriteLog("Core::ReadAPIKey:error - api.key file is empty.");
+            BPErrorLog::WriteLog("Core::ReadAPIKey:error - api.key file is empty.","/root/GPTMobileServer/src/logs/ErrorLog.log");
         } else {
-            ErrorLog::WriteLog("Core::ReadAPIKey:error - Failed to read api.key file");
+            BPErrorLog::WriteLog("Core::ReadAPIKey:error - Failed to read api.key file","/root/GPTMobileServer/src/logs/ErrorLog.log");
         }        
         return false;
     }
