@@ -1,8 +1,8 @@
 #include "CoreServer.h"
 #include "log.h"
-#include "BPTools/BPStrings.h"
-#include "BPTools/BPFile.h"
-#include "BPTools/BPExec.h"
+#include "BPStrings.h"
+#include "BPFile.h"
+#include "BPExec.h"
 #include "rapidjson/document.h"
 #include <string>
 #include <regex>
@@ -16,6 +16,7 @@ CoreServer::CoreServer() {
     std::cout << "CoreServer::CoreServer: Initializing..." << std::endl;
     MainLog::WriteLog("CoreServer::CoreServer: Initializing...");
     this->isRunning = false;
+    this->debug_mode = false;
     this->current_command ="";
     this->api_key = "";
     this->Init();
@@ -53,6 +54,14 @@ void CoreServer::StopAcceptHandler() {
     this->isRunning = false;
 }
 
+void CoreServer::ToggleDebugMode() {
+    if (this->debug_mode) {
+        this->debug_mode = false;
+    } else {
+        this->debug_mode = true;
+    }
+}
+
 void CoreServer::AcceptHandler() {    
     MainLog::WriteLog("Starting Accept Handler");
     int addrlen = sizeof(this->address);
@@ -81,17 +90,26 @@ void CoreServer::AcceptHandler() {
                     if (result != "") {
                         if (result == "server-shutdown-procedure") {
                             send(new_socket, std::string("").c_str(), strlen(std::string("").c_str()), 0);
+                            this->StopAcceptHandler();
+                        } else if (result == "debug-mode-toggle") {
+                            std::cout << std::to_string(this->debug_mode) << std::endl;
+                            send(new_socket, std::string("Debug mode toggled.").c_str(), strlen(std::string("Debug mode toggled.").c_str()), 0);
                         } else {
                             int bytesSent = send(new_socket, result.c_str(), strlen(result.c_str()), 0);
                             if (bytesSent < 0) {
                                 ErrorLog::WriteLog("CoreServer::AcceptHandler[Lambda:handler_thread]:error - Failed to send message to client socket, shuttdown down connection...");
                                 break;
                             } else {
-                                std::cout << "Sending GPT response:" <<std::endl;
+                                if (this->debug_mode) {
+                                    std::cout << "Response Sent:" <<std::endl;
+                                }                                
                             }   
                         }
                     } else {
                         ErrorLog::WriteLog("CoreServer::AcceptHandler:error - HandleMessage failed.");
+                        if (this->debug_mode) {
+                            std::cout << buffer << std::endl;
+                        }                        
                         std::string err_str = "Internal server error";
                         send(new_socket, err_str.c_str(), strlen(err_str.c_str()), 0);
                     }
@@ -110,22 +128,25 @@ std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
     std::regex regex(pattern);
     std::smatch match;
     std::vector splt_str = BPStrings::SplitString(msg,'\n');
-    
+    //std::cout << msg << std::endl;
     if (msg == "--shutdown-server") {
-        std::cout << "shutting down" << std::endl;
         MainLog::WriteLog("CoreServer::HandleMessage:info - Shutting Down");
-        this->StopAcceptHandler();
+        if (this->debug_mode) {
+            std::cout << "shutting down" << std::endl;
+        }        
         ret = "server-shutdown-procedure";
+    } else if(msg == "--debug-toggle") {
+        ret = "debug-mode-toggle";
+        this->ToggleDebugMode();
     } else if(msg == "--help") {
-        std::string help_msg = this->GetHelp();
-        send(new_socket, help_msg.c_str(), strlen(help_msg.c_str()), 0);
+        return this->GetHelp();
     } else if (std::regex_match(splt_str[0], match, regex)) {
-        //Handle HTTP request
-        send(new_socket, splt_str[0].c_str(), strlen(splt_str[0].c_str()), 0);
-        //TODO: Send HTTP response to client
-    } else {        
-        this->SetCommand(msg);
-        ret = this->ExecuteCommand();
+        //TODO:// Handle HTTP request
+        return splt_str[0].c_str();        
+    } else {   
+        std::string esc_msg = BPStrings::EscapeStringCharacters(msg);
+        this->SetCommand(esc_msg);
+        ret = this->ExecuteGPTCommand();
     } 
     return ret;
 }
@@ -140,7 +161,7 @@ void CoreServer::SetCommand(std::string command_str) {
     this->current_command = command;
 }
 
-std::string CoreServer::ExecuteCommand() {    
+std::string CoreServer::ExecuteGPTCommand() {    
     std::string ret ="";      
     std::smatch match;
     std::string pattern = "^.*\n+(.*)$";
@@ -184,13 +205,15 @@ std::string CoreServer::GetCommandString() {
 }
 
 std::string CoreServer::GetHelp() {
-    std::string help_str = ("NAME:\n"  
-            "  DeskGPT\n"
-            "USAGE:\n" 
-            "  DeskGPT.exe [options] <api_key>\n"
-            "OPTIONS:\n"
-            "  --help or -h     To see this option screen\n"
-            "  --exit           To shutdown program\n");
+    std::string help_str = (
+            "DeskGPT:\n"
+            "  OPTIONS:\n"
+            "    --help or -h       To see this option screen\n"
+            "    --exit             To shutdown program\n"
+            "    --debug-toggle     Toggle server debug mode\n"
+            "    --shutdown-server  Shutdown server\n"
+            "    --test-http        Send Test HTTP message to server\n"
+            );
     return help_str;
 }
 

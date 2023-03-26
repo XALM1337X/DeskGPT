@@ -14,11 +14,12 @@ class CoreServer {
         void Init();
         void StartAcceptHandler();
         void StopAcceptHandler();
+        void ToggleDebugMode();
         void AcceptHandler();
         void SetCommand(std::string);
         bool ReadAPIKey();
         std::string HandleMessage(std::string,int);        
-        std::string ExecuteCommand();
+        std::string ExecuteGPTCommand();
         std::string GetCommandString();
         std::string GetHelp();
     private:
@@ -28,8 +29,9 @@ class CoreServer {
         int opt;
         struct sockaddr_in address;
         std::atomic<bool> isRunning;
+        std::atomic<bool> debug_mode;
         std::string current_command;
-        std::string api_key;
+        std::string api_key;        
     private:
 
 };

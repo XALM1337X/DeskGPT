@@ -30,10 +30,10 @@ int main(int argc, char const *argv[]) {
     while (std::getline(std::cin, user_input)) {
         if (user_input == "--exit") {
             break;
-        } else if (user_input == "--clear") {
+        } else if (user_input == "--clear" || user_input == "") {
             system("clear");
             skip = true;
-        } else if (user_input == "--test_http") {
+        } else if (user_input == "--test-http") {
             std::string http_msg = "POST /cgi-bin/process.cgi HTTP/1.1\r\n"
                                    "User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT)\r\n"
                                    "Host: www.tutorialspoint.com\r\n"

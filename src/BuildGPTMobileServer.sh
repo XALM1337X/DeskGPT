@@ -1,6 +1,13 @@
 #!/bin/bash
 SOURCE_PATH=$1
+BP_TOOLS_PATH=$2
 pushd $SOURCE_PATH > /dev/null
+
+#Copy BPTools include file and library to GPTMobileServer/src/include and /lib respectively
+cp $BP_TOOLS_PATH/src/include/*.h $SOURCE_PATH/include/
+cp $BP_TOOLS_PATH/src/lib/libBPTools.so $SOURCE_PATH/lib/
+
+
 rm -f $SOURCE_PATH/obj/Release/*
 rm -f $SOURCE_PATH/bin/Release/*
 for f in *.cpp; do
@@ -22,9 +29,10 @@ for f in *.o; do
 	fi
 done
 
-
+#Redhat Linux linking
+#/usr/lib/gcc/x86_64-redhad-linux/8 This is the path to gcc/c++ ".so" library files
 echo "Linking GPTMobileServer."
-gcc -L/usr/lib/gcc/x86_64-redhat-linux/8 -o $SOURCE_PATH/bin/Release/GPTMobileServer.exe "${object_file[@]}" -lstdc++ -pthread
+gcc -L/usr/lib/gcc/x86_64-redhat-linux/8 -L$SOURCE_PATH/lib -o $SOURCE_PATH/bin/Release/GPTMobileServer.exe "${object_file[@]}" -lstdc++ -pthread -lBPTools
 if [[ ! $? -eq 0 ]]; then
 	echo "Failed to link objects, build failed for GPTMobileServer."
 	exit 1
@@ -38,7 +46,7 @@ if [[ ! $? -eq 0 ]]; then
 	echo "Failed to link objects, build failed for GPTMobileClientTest."
 	exit 1
 fi
-
+################################################################################################################################
 #These DLL paths are for windows builds with cygwin
 #if [[ ! -f $SOURCE_PATH/bin/Release/libstdc++-6.dll ]]; then
 #        cp /cygdrive/c/cygwin64/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libstdc++-6.dll $SOURCE_PATH/bin/Release/
