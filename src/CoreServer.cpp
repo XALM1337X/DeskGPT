@@ -3,6 +3,7 @@
 #include "BPStrings.h"
 #include "BPFile.h"
 #include "BPExec.h"
+#include "BPHttp.h"
 #include "rapidjson/document.h"
 #include <string>
 #include <regex>
@@ -128,11 +129,10 @@ void CoreServer::LaunchHandlerInternals(int socket) {
 
 std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
     std::string ret = "";
-    std::string pattern = "(POST|GET|PUT|HEAD|DELETE|CONNECT|OPTIONS|TRACE)\\s+([a-zA-Z\\/.-]+)\\s+([a-zA-Z]+)\\/([0-9.]+)\r*$";
+    std::string pattern = "(POST|GET|PUT|HEAD|DELETE|CONNECT|OPTIONS|TRACE)\\s+([a-zA-Z\\/.-]+)\\s+([a-zA-Z]+)\\/([0-9.]+)$";
     std::regex regex(pattern);
     std::smatch match;
-    std::vector splt_str = BPStrings::SplitString(msg,'\n');
-    //std::cout << msg << std::endl;
+    std::vector<std::string> splt_str = BPStrings::SplitString(msg,'\n');    
     if (msg == "--shutdown-server") {
         BPMainLog::WriteLog("CoreServer::HandleMessage:info - Shutting Down","/root/GPTMobileServer/src/logs/MainLog.log");
         if (this->debug_mode) {
@@ -145,14 +145,24 @@ std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
     } else if(msg == "--help") {
         return this->GetHelp();
     } else if (std::regex_match(splt_str[0], match, regex)) {
-        //TODO:// Handle HTTP request
-        return splt_str[0].c_str();        
+        return this->HandleHTTPRequest(splt_str);        
     } else {   
         std::string esc_msg = BPStrings::EscapeStringCharacters(msg);
         this->SetCommand(esc_msg);
         ret = this->ExecuteGPTCommand();
     } 
     return ret;
+}
+
+std::string CoreServer::HandleHTTPRequest(std::vector<std::string> lines) {
+    BPHttpMessage msg;
+    msg.Parse(lines);
+    for (auto it = msg.header_map.begin(); it != msg.header_map.end(); ++it) {
+        
+    }
+    
+    
+    return msg.body;
 }
 
 void CoreServer::SetCommand(std::string command_str) {
