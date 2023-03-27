@@ -9,7 +9,9 @@ rm -f $SOURCE_PATH/lib/libBP*
 
 if [[ $2 == "true" ]]; then
 	pushd $BP_TOOLS_PATH/src > /dev/null
+	echo "Building: \"BPTools\""
 	./BuildBPTools.sh $(pwd)
+	echo ""
 	popd > /dev/null
 fi
 
@@ -24,7 +26,7 @@ cp $BP_TOOLS_PATH/src/include/*.h $SOURCE_PATH/include/
 cp $BP_TOOLS_PATH/src/lib/libBPTools.so $SOURCE_PATH/lib/
 
 
-
+echo "Building: \"GPTServer and Client\""
 for f in *.cpp; do
 	file_name=$(echo $f | cut -d "." -f 1)
 	gcc  -Wall -O2 -std=c++17 -I"$SOURCE_PATH/include" -c "$SOURCE_PATH/$f" -o $SOURCE_PATH/obj/Release/$file_name.o
@@ -52,8 +54,8 @@ if [[ ! $? -eq 0 ]]; then
 	echo "Failed to link objects, build failed for GPTMobileServer."
 	exit 1
 fi
-echo "Succesfully built $EXE_NAME"
-
+echo "Succesfully built GPTMobileServer.exe"
+echo ""
 
 echo "Linking GPTMobileClientTest."
 gcc -L/usr/lib/gcc/x86_64-redhat-linux/8 -o $SOURCE_PATH/bin/Release/GPTMobileClientTest.exe GPTMobileClientTest.o -lstdc++
