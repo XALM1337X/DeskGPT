@@ -1,5 +1,5 @@
-#ifndef _CORE_SERVER_H_
-#define _CORE_SERVER_H_
+#ifndef CORE_SERVER_H
+#define CORE_SERVER_H
 //#include <string>
 #include <sys/socket.h> // for sockets
 #include <arpa/inet.h> // for internet addresses
@@ -19,7 +19,8 @@ class CoreServer {
         void SetCommand(std::string);
         void LaunchHandlerInternals(int);
         bool ReadAPIKey();
-        std::string HandleMessage(std::string,int);        
+        std::string HandleMessage(std::string,int);    
+        std::string HandleHTTPRequest(std::vector<std::string>);
         std::string ExecuteGPTCommand();
         std::string GetCommandString();
         std::string GetHelp();
