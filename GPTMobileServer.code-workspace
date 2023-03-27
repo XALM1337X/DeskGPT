@@ -70,7 +70,9 @@
 			"list": "cpp",
 			"unordered_map": "cpp",
 			"xhash": "cpp",
-			"sstream": "cpp"
+			"sstream": "cpp",
+			"mutex": "cpp",
+			"condition_variable": "cpp"
 		},
 		"C_Cpp.errorSquiggles": "enabled",
 		"search.quickOpen.includeSymbols": true,
