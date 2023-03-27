@@ -6,14 +6,8 @@
 #include <stdio.h>
 #include <chrono>
 #include <thread>
-
-//For Sockets in windows
-//#include <WinSock2.h> // for sockets
-//#include <Ws2tcpip.h> // for internet addresses
-
 int main(int argc, char **argv) {    
-    Core* DeskGPTCore = new Core();    
-        
+    Core* DeskGPTCore = new Core();        
     while (DeskGPTCore->CoreServerObj->isRunning){
         std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     }
