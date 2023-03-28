@@ -36,8 +36,8 @@ void CoreServer::Init() {
     this->opt = 1;
     setsockopt(this->server_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &this->opt, sizeof(this->opt));    
     this->address.sin_family = AF_INET;
-    this->address.sin_addr.s_addr = INADDR_ANY;
-    this->address.sin_port = htons(8080);    
+    this->address.sin_addr.s_addr = htonl(INADDR_ANY);
+    this->address.sin_port = htons(1337);    
     bind(this->server_socket, (struct sockaddr *)&this->address, sizeof(this->address));
     listen(this->server_socket, 3);
     this->isRunning = true;
@@ -73,7 +73,7 @@ void CoreServer::AcceptHandler() {
             BPErrorLog::WriteLog("CoreServer::AcceptHandler:error - Error accepting new connection","/root/GPTMobileServer/src/logs/ErrorLog.log");
             std::cout << "Error accepting new connection" << std::endl;;
             continue;
-        }
+        } 
         std::thread handler_thread([this, new_socket]() {
            this->LaunchHandlerInternals(new_socket);
         });
@@ -129,10 +129,12 @@ void CoreServer::LaunchHandlerInternals(int socket) {
 
 std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
     std::string ret = "";
-    std::string pattern = "(POST|GET|PUT|HEAD|DELETE|CONNECT|OPTIONS|TRACE)\\s+([a-zA-Z\\/.-]+)\\s+([a-zA-Z]+)\\/([0-9.]+)$";
+    std::string pattern = "(POST|GET|PUT|HEAD|DELETE|CONNECT|OPTIONS|TRACE)\\s+([a-zA-Z\\/.-]+)\\s+([a-zA-Z]+)\\/([0-9.]+)\r*$";
+    std::string pattern_resp = "HTTP\\/([0-9.]+)\\s+([0-9]+)\\s+(.*)\r*";
     std::regex regex(pattern);
+    std::regex regex2(pattern_resp);
     std::smatch match;
-    std::vector<std::string> splt_str = BPStrings::SplitString(msg,'\n');    
+    std::vector<std::string> splt_str = BPStrings::SplitString(msg,'\n');   
     if (msg == "--shutdown-server") {
         BPMainLog::WriteLog("CoreServer::HandleMessage:info - Shutting Down","/root/GPTMobileServer/src/logs/MainLog.log");
         if (this->debug_mode) {
@@ -144,8 +146,8 @@ std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
         this->ToggleDebugMode();
     } else if(msg == "--help") {
         return this->GetHelp();
-    } else if (std::regex_match(splt_str[0], match, regex)) {
-        return this->HandleHTTPRequest(splt_str);        
+    } else if (std::regex_match(splt_str[0], match, regex) || std::regex_match(splt_str[0], match, regex2)) {
+        return this->HandleHTTPMessage(splt_str);        
     } else {   
         std::string esc_msg = BPStrings::EscapeStringCharacters(msg);
         this->SetCommand(esc_msg);
@@ -154,15 +156,20 @@ std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
     return ret;
 }
 
-std::string CoreServer::HandleHTTPRequest(std::vector<std::string> lines) {
+std::string CoreServer::HandleHTTPMessage(std::vector<std::string> lines) {
+    std::string test_index = "<!DOCTYPE html><html><body>This is some real shit.</body></html>";
     BPHttpMessage msg;
     msg.Parse(lines);
-    for (auto it = msg.header_map.begin(); it != msg.header_map.end(); ++it) {
-        
-    }
-    
-    
-    return msg.body;
+    //Parse Request logic, and craft response
+    std::string http_msg = "HTTP/1.1 200 OK\r\n"
+                           "Content-Type: text/html\r\n"
+                           "Content-Length: "+(std::to_string(test_index.size()))+"\r\n"
+                           "\r\n"+
+                           test_index;
+
+
+
+    return http_msg;
 }
 
 void CoreServer::SetCommand(std::string command_str) {

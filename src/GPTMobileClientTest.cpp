@@ -18,7 +18,7 @@ int main(int argc, char const *argv[]) {
     // Set up the address structure for the server
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(8080);
+    serverAddress.sin_port = htons(1337);
     serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // Connect to the server
@@ -33,18 +33,19 @@ int main(int argc, char const *argv[]) {
         } else if (user_input == "--clear" || user_input == "") {
             system("clear");
             skip = true;
-        } else if (user_input == "--test-http") {
-            std::string http_msg = "POST /cgi-bin/process.cgi HTTP/1.1\n"
-                                   "User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT)\n"
-                                   "Host: www.tutorialspoint.com\n"
-                                   "Content-Type: text/xml; charset=utf-8\n"
-                                   "Content-Length: length\n"
-                                   "Accept-Language: en-us\n"
-                                   "Accept-Encoding: gzip, deflate\n"
-                                   "Connection: Keep-Alive\n"
-                                   "\n"
-                                   "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-                                   "<string xmlns=\"http://clearforest.com/\">string</string>\n";
+        } else if (user_input == "--test-http") {            
+            std::string http_msg = "POST /cgi-bin/process.cgi HTTP/1.1\r\n"
+                                   "User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT)\r\n"
+                                   "Host: www.tutorialspoint.com\r\n"
+                                   "Content-Type: text/xml; charset=utf-8\r\n"
+                                   "Content-Length: length\r\n"
+                                   "Accept-Language: en-us\r\n"
+                                   "Accept-Encoding: gzip, deflate\r\n"
+                                   "Connection: Keep-Alive\r\n"
+                                   "\r\n"
+                                   "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n"
+                                   "<string xmlns=\"http://clearforest.com/\">string</string>\r\n";
+            
             send(clientSocket, http_msg.c_str(), strlen(http_msg.c_str()), 0);
         } else {
             send(clientSocket, user_input.c_str(), strlen(user_input.c_str()), 0);

@@ -7,6 +7,12 @@ rm -f $SOURCE_PATH/bin/Release/*
 rm -f $SOURCE_PATH/include/BP*.h
 rm -f $SOURCE_PATH/lib/libBP*
 
+firewall-cmd --zone=public --list-ports | grep -hoe "1337/tcp" > /dev/null
+if [[ $? == 1 ]]; then
+	firewall-cmd --add-port=1337/tcp --permanent > /dev/null
+	firewall-cmd --reload > /dev/null
+fi
+
 if [[ $2 == "true" ]]; then
 	pushd $BP_TOOLS_PATH/src > /dev/null
 	echo "Building: \"BPTools\""
