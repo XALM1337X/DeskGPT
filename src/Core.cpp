@@ -3,13 +3,13 @@
 #include "CoreServer.h"
 
 Core::Core() {
-    BPMainLog::WriteLog("Core::~Core: Initializing...","/root/GPTMobileServer/src/logs/MainLog.log");
+    BPLog::WriteLog("Core::~Core: Initializing...","/root/GPTMobileServer/src/logs/MainLog.log");
     this->CoreServerObj = new CoreServer();
     this->Init();
 }
 
 Core::~Core() {
-    BPMainLog::WriteLog("Core::~Core: Shutting Down...","/root/GPTMobileServer/src/logs/MainLog.log");
+    BPLog::WriteLog("Core::~Core: Shutting Down...","/root/GPTMobileServer/src/logs/MainLog.log");
     delete(this->CoreServerObj);
 }
 void Core::Init() {
