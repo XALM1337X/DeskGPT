@@ -15,17 +15,18 @@
 
 CoreServer::CoreServer() {
     std::cout << "CoreServer::CoreServer: Initializing..." << std::endl;
-    BPMainLog::WriteLog("CoreServer::CoreServer: Initializing...","/root/GPTMobileServer/src/logs/MainLog.log");
+    BPLog::WriteLog("CoreServer::CoreServer: Initializing...","/root/GPTMobileServer/src/logs/MainLog.log");
     this->isRunning = false;
     this->debug_mode = false;
     this->current_command ="";
     this->api_key = "";
+    this->web_root = "/root/GPTMobileServer/src/www/";
     this->Init();
 }
 
 CoreServer::~CoreServer() {
     std::cout << "CoreServer::~CoreServer: Shutting Down..." << std::endl;
-    BPMainLog::WriteLog("CoreServer::~CoreServer: Shutting Down...","/root/GPTMobileServer/src/logs/MainLog.log");
+    BPLog::WriteLog("CoreServer::~CoreServer: Shutting Down...","/root/GPTMobileServer/src/logs/MainLog.log");
 }
 
 void CoreServer::Init() {
@@ -64,7 +65,12 @@ void CoreServer::ToggleDebugMode() {
 }
 
 void CoreServer::AcceptHandler() {    
-    BPMainLog::WriteLog("Starting Accept Handler","/root/GPTMobileServer/src/logs/MainLog.log");
+
+    struct sockaddr_in client_ip;
+    socklen_t client_iplen = sizeof(client_ip);
+    char ip_address[INET_ADDRSTRLEN];
+
+    BPLog::WriteLog("Starting Accept Handler","/root/GPTMobileServer/src/logs/MainLog.log");
     int addrlen = sizeof(this->address);
     int new_socket;
     while (this->isRunning) {
@@ -74,6 +80,20 @@ void CoreServer::AcceptHandler() {
             std::cout << "Error accepting new connection" << std::endl;;
             continue;
         } 
+
+        if (getpeername(new_socket, (struct sockaddr *)&client_ip, &client_iplen) < 0) {
+            BPErrorLog::WriteLog("CoreServer::AcceptHandler:error - Failed to get client IP.", "/root/GPTMobileServer/src/logs/ErrorLog.log");
+        } else {
+            inet_ntop(AF_INET, &(client_ip.sin_addr), ip_address, INET_ADDRSTRLEN);
+            BPLog::WriteLog("CoreServer::AcceptHandler: IP Address: "+std::string(ip_address)+" connected!", "/root/GPTMobileServer/src/logs/MainLog.log");
+            if (this->debug_mode) {
+                std::cout << "IP Address: "<<ip_address<< " connected!" << std::endl;
+            }            
+        }
+
+
+
+
         std::thread handler_thread([this, new_socket]() {
            this->LaunchHandlerInternals(new_socket);
         });
@@ -90,7 +110,7 @@ void CoreServer::LaunchHandlerInternals(int socket) {
             BPErrorLog::WriteLog("CoreServer::LaunchHandlerThread[Lambda:handler_thread]:error - Socket received error. Closing socket: "+std::to_string(socket),"/root/GPTMobileServer/src/logs/ErrorLog.log");
             break;
         } else if (valread == 0) {
-            BPMainLog::WriteLog("CoreServer::LaunchHandlerThread[Lambda:handler_thread]: - Client has disconnected from socket, shutting down connection...","/root/GPTMobileServer/src/logs/MainLog.log");
+            BPLog::WriteLog("CoreServer::LaunchHandlerThread[Lambda:handler_thread]: - Client has disconnected from socket, shutting down connection...","/root/GPTMobileServer/src/logs/MainLog.log");
             break;
         } else {
             std::string msg_str(buffer);
@@ -129,25 +149,28 @@ void CoreServer::LaunchHandlerInternals(int socket) {
 
 std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
     std::string ret = "";
-    std::string pattern = "(POST|GET|PUT|HEAD|DELETE|CONNECT|OPTIONS|TRACE)\\s+([a-zA-Z\\/.-]+)\\s+([a-zA-Z]+)\\/([0-9.]+)\r*$";
+    std::string pattern = "([A-Z]+)\\s+([a-zA-Z0-9\\-._~:\\/?#\\[\\]@!$&'()*+,;=]+)\\s+([a-zA-Z]+)\\/([0-9.]+)\r*$";
     std::string pattern_resp = "HTTP\\/([0-9.]+)\\s+([0-9]+)\\s+(.*)\r*";
     std::regex regex(pattern);
     std::regex regex2(pattern_resp);
     std::smatch match;
     std::vector<std::string> splt_str = BPStrings::SplitString(msg,'\n');   
     if (msg == "--shutdown-server") {
-        BPMainLog::WriteLog("CoreServer::HandleMessage:info - Shutting Down","/root/GPTMobileServer/src/logs/MainLog.log");
+        BPLog::WriteLog("CoreServer::HandleMessage:info - Shutting Down","/root/GPTMobileServer/src/logs/MainLog.log");
         if (this->debug_mode) {
             std::cout << "shutting down" << std::endl;
         }        
         ret = "server-shutdown-procedure";
-    } else if(msg == "--debug-toggle") {
-        ret = "debug-mode-toggle";
+    } else if(msg == "--debug-toggle") {        
         this->ToggleDebugMode();
+        ret = "debug-mode-toggle";
     } else if(msg == "--help") {
-        return this->GetHelp();
+        ret = this->GetHelp();
+    } else if (msg == "--server-clear") {
+        system("clear");
+        ret = "response";
     } else if (std::regex_match(splt_str[0], match, regex) || std::regex_match(splt_str[0], match, regex2)) {
-        return this->HandleHTTPMessage(splt_str);        
+        ret = this->HandleHTTPMessage(splt_str);        
     } else {   
         std::string esc_msg = BPStrings::EscapeStringCharacters(msg);
         this->SetCommand(esc_msg);
@@ -157,16 +180,63 @@ std::string CoreServer::HandleMessage(std::string msg, int new_socket) {
 }
 
 std::string CoreServer::HandleHTTPMessage(std::vector<std::string> lines) {
-    std::string test_index = "<!DOCTYPE html><html><body>This is some real shit.</body></html>";
+
+    std::string mime_html_regex_pattern =".*\\.html.*";
+    std::string mime_js_regex_pattern =".*\\.js.*";
+    std::string mime_css_regex_pattern =".*\\.css.*";
+    std::string mime_img_regex_pattern =".*(\\.png|\\.jpg\\|\\.svg|\\.ico).*";
+    std::regex regex_html(mime_html_regex_pattern);
+    std::regex regex_js(mime_js_regex_pattern);
+    std::regex regex_css(mime_css_regex_pattern);
+    std::regex regex_img(mime_img_regex_pattern);
+    std::smatch match;
+
+    BPHttpMessage response;
     BPHttpMessage msg;
-    msg.Parse(lines);
-    //Parse Request logic, and craft response
+
+    if (!msg.Parse(lines)) {
+        //TODO:// Return failure to parse request
+    }
+    std::string resource = msg.ParseRequestResource(msg.entity_head);
+    if (resource == "") {
+        std::cout << "Failed to Parse Resource"<< std::endl;
+        //TODO:// Return failure to parse entity header resource.
+    }
+    std::string* file_str = new std::string("");
+    bool read_succes = false;    
+    if (std::regex_search(resource, regex_html)) {
+        if (BPFile::FileExists(this->web_root+"html"+resource)) {
+            read_succes = BPFile::FileReadString(this->web_root+"html"+resource, file_str);
+        }
+    } else if (std::regex_search(resource, regex_js)) {
+        if (BPFile::FileExists(this->web_root+"js"+resource)) {
+            read_succes = BPFile::FileReadString(this->web_root+"js"+resource, file_str);
+        }
+    } else if (std::regex_search(resource, regex_css)) {
+        if (BPFile::FileExists(this->web_root+"css"+resource)) {
+            read_succes = BPFile::FileReadString(this->web_root+"css"+resource, file_str);
+        }
+    } else if (std::regex_search(resource, regex_img)) {
+        if (BPFile::FileExists(this->web_root+"img"+resource)) {
+            read_succes = BPFile::FileReadString(this->web_root+"img"+resource, file_str);
+        }
+    } 
+
+    if (!read_succes) {
+        std::string response = "HTTP/1.1 404 Not Found\r\n"
+                       "Content-Type: text/plain\r\n"
+                       "Content-Length: 13\r\n"
+                       "\r\n"
+                       "404 Not Found";
+        return response;
+    }    
+    //Testing shit/////////////////////////
     std::string http_msg = "HTTP/1.1 200 OK\r\n"
                            "Content-Type: text/html\r\n"
-                           "Content-Length: "+(std::to_string(test_index.size()))+"\r\n"
+                           "Content-Length: "+std::to_string((*file_str).size())+"\r\n"
                            "\r\n"+
-                           test_index;
-
+                           (*file_str);
+    ///////////////////////////////////////
 
 
     return http_msg;
@@ -187,7 +257,7 @@ std::string CoreServer::ExecuteGPTCommand() {
     std::smatch match;
     std::string pattern = "^.*\n+(.*)$";
     std::regex regex(pattern);
-    BPExecResult ex = BPExec::Exec(this->GetCommandString());
+    BPExecResult ex = BPExec::Exec(this->GetCommandString(), true);
     if (ex.exit_code != 0) {
         BPErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to execute command.","/root/GPTMobileServer/src/logs/ErrorLog.log");
         return ret;

@@ -33,7 +33,8 @@ class CoreServer {
         std::atomic<bool> isRunning;
         std::atomic<bool> debug_mode;
         std::string current_command;
-        std::string api_key;        
+        std::string api_key; 
+        std::string web_root;       
     private:
 
 };
