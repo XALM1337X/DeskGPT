@@ -268,8 +268,8 @@ std::string CoreServer::ExecuteGPTCommand() {
     rapidjson::ParseResult result = document.Parse(ex.result.c_str());    
     if (!result || document.HasMember("error")) {
         std::cout << rapidjson::GetParseError_En(result.Code()) << std::endl;
-        BPErrorLog::WriteLog("Core::ExecuteCommand:error - Failed parsing JSON: "+rapidjson::GetParseError_En(result.Code()),"/root/GPTMobileServer/src/logs/ErrorLog.log");
-        return "Failed parsing JSON: "+rapidjson::GetParseError_En(result.Code());
+        BPErrorLog::WriteLog("Core::ExecuteCommand:error - Failed parsing JSON: "+std::string(rapidjson::GetParseError_En(result.Code())),"/root/GPTMobileServer/src/logs/ErrorLog.log");
+        return "Failed parsing JSON: "+std::string(rapidjson::GetParseError_En(result.Code()));
     } else {
         const rapidjson::Value& choices = document["choices"];        
         if (choices.IsArray()) {        
