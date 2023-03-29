@@ -258,7 +258,7 @@ std::string CoreServer::ExecuteGPTCommand() {
     std::smatch match;
     std::string pattern = "^.*\n+(.*)$";
     std::regex regex(pattern);
-    BPExecResult ex = BPExec::Exec(this->GetCommandString(),true);
+    BPExecResult ex = BPExec::Exec(this->GetCommandString(), true);
     if (ex.exit_code != 0) {
         BPErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to execute command.","/root/GPTMobileServer/src/logs/ErrorLog.log");
         return ret;
