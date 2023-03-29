@@ -5,6 +5,7 @@
 #include "BPExec.h"
 #include "BPHttp.h"
 #include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
 #include <string>
 #include <regex>
 #include <fstream>
@@ -20,7 +21,7 @@ CoreServer::CoreServer() {
     this->debug_mode = false;
     this->current_command ="";
     this->api_key = "";
-    this->web_root = "/root/GPTMobileServer/src/www/";
+    this->web_root = "/root/GPTMobileServer/src/www/";    
     this->Init();
 }
 
@@ -243,10 +244,10 @@ std::string CoreServer::HandleHTTPMessage(std::vector<std::string> lines) {
 }
 
 void CoreServer::SetCommand(std::string command_str) {
-    std::string command =  "curl -s https://api.openai.com/v1/chat/completions " 
-                           "-H \"Authorization: Bearer "+this->api_key+"\" " 
-                           "-H \"Content-Type: application/json\" " 
-                           "-d '{ \"model\": \"gpt-3.5-turbo\", \"messages\": [{\"role\": \"user\", \"content\": \""+command_str+"\"}]}' ";
+    std::string command =  "curl -s https://api.openai.com/v1/chat/completions "
+                           "-H \"Authorization: Bearer "+this->api_key+"\" "
+                           "-H \"Content-Type: application/json\" "
+                           "-d '{\"model\": \"gpt-3.5-turbo\", \"messages\": [{ \"role\": \"user\", \"content\": \""+command_str+"\"}]}' ";
     
 
     this->current_command = command;
@@ -257,16 +258,18 @@ std::string CoreServer::ExecuteGPTCommand() {
     std::smatch match;
     std::string pattern = "^.*\n+(.*)$";
     std::regex regex(pattern);
-    BPExecResult ex = BPExec::Exec(this->GetCommandString(), true);
+    BPExecResult ex = BPExec::Exec(this->GetCommandString(),true);
     if (ex.exit_code != 0) {
         BPErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to execute command.","/root/GPTMobileServer/src/logs/ErrorLog.log");
         return ret;
-    }    
+    }
+    std::cout << ex.result << std::endl;    
     rapidjson::Document document;
     rapidjson::ParseResult result = document.Parse(ex.result.c_str());    
     if (!result || document.HasMember("error")) {
-        BPErrorLog::WriteLog("Core::ExecuteCommand:error - Failed parsing JSON","/root/GPTMobileServer/src/logs/ErrorLog.log");
-        return "Failed parsing JSON";
+        std::cout << rapidjson::GetParseError_En(result.Code()) << std::endl;
+        BPErrorLog::WriteLog("Core::ExecuteCommand:error - Failed parsing JSON: "+rapidjson::GetParseError_En(result.Code()),"/root/GPTMobileServer/src/logs/ErrorLog.log");
+        return "Failed parsing JSON: "+rapidjson::GetParseError_En(result.Code());
     } else {
         const rapidjson::Value& choices = document["choices"];        
         if (choices.IsArray()) {        
