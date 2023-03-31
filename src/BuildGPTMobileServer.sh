@@ -64,7 +64,7 @@ echo "Succesfully built GPTMobileServer.exe"
 echo ""
 
 echo "Linking GPTMobileClientTest."
-gcc -L/usr/lib/gcc/x86_64-redhat-linux/8 -o $SOURCE_PATH/bin/Release/GPTMobileClientTest.exe GPTMobileClientTest.o -lstdc++
+gcc -L/usr/lib/gcc/x86_64-redhat-linux/8 -L$SOURCE_PATH/lib -o $SOURCE_PATH/bin/Release/GPTMobileClientTest.exe GPTMobileClientTest.o -lstdc++ -lBPTools
 if [[ ! $? -eq 0 ]]; then
 	echo "Failed to link objects, build failed for GPTMobileClientTest."
 	exit 1
