@@ -3,6 +3,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
+#include "BPHttp.h"
+#include <netdb.h>
 
 int main(int argc, char const *argv[]) {
     // Create a socket
