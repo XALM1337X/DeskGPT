@@ -1,6 +1,6 @@
 Testing = {
     testing_func:function() {
-        alert("working javascript");
+        alert("TEST");
     }
 }
 
