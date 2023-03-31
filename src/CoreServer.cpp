@@ -224,20 +224,13 @@ std::string CoreServer::HandleHTTPMessage(std::vector<std::string> lines) {
     } 
 
     if (!read_succes) {
-        std::string response = "HTTP/1.1 404 Not Found\r\n"
-                       "Content-Type: text/plain\r\n"
-                       "Content-Length: 13\r\n"
-                       "\r\n"
-                       "404 Not Found";
-        return response;
+        response.BodySet("404 Not Found");
+        response.EntityHeadSet("HTTP/1.1", "404", "Not Found");
+        response.HeaderSet("Content-Type", "text/plain");
+        response.HeaderSet("Content-Length", std::to_string(response.body.size()));        
+        return response.BuildMessageString();
     }    
-    //Testing shit/////////////////////////
-    std::string http_msg = "HTTP/1.1 200 OK\r\n"
-                           "Content-Type: text/html\r\n"
-                           "Content-Length: "+std::to_string((*file_str).size())+"\r\n"
-                           "\r\n"+
-                           (*file_str);
-    ///////////////////////////////////////
+
 
 
     return http_msg;
