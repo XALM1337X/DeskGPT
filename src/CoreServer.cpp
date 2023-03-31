@@ -232,8 +232,13 @@ std::string CoreServer::HandleHTTPMessage(std::vector<std::string> lines) {
     }    
 
 
+    //Add Malicous request parsing here and ban bitches.
 
-    return http_msg;
+    response.EntityHeadSet("HTTP/1.1", "200", "OK");
+    response.HeaderSet("Content-Type", "text/html");
+    response.HeaderSet("Content-Length", std::to_string((*file_str).size()));
+    response.BodySet(*file_str);
+    return response.BuildMessageString();
 }
 
 void CoreServer::SetCommand(std::string command_str) {
