@@ -261,7 +261,9 @@ std::string CoreServer::ExecuteGPTCommand() {
         BPErrorLog::WriteLog("Core::ExecuteCommand:error - Failed to execute command.","/root/GPTMobileServer/src/logs/ErrorLog.log");
         return ret;
     }
-    std::cout << ex.result << std::endl;    
+    if (this->debug_mode) {
+        std::cout << ex.result << std::endl;    
+    }
     rapidjson::Document document;
     rapidjson::ParseResult result = document.Parse(ex.result.c_str());    
     if (!result || document.HasMember("error")) {
