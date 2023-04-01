@@ -145,6 +145,9 @@ void CoreServer::LaunchHandlerInternals(int socket) {
         }
         memset(buffer, 0, sizeof(buffer));
     }
+    if (this->debug_mode) {
+        std::cout << "Client disconnecting" <<std::endl;
+    }    
     close(socket); 
 }
 
