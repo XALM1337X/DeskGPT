@@ -226,6 +226,11 @@ std::string CoreServer::HandleHTTPMessage(std::vector<std::string> lines) {
         }
     } 
 
+    BPHttpMessage::GenerateDate(&date_data, &date_err);
+    if (date_err.size() == 0 && date_data.size() > 0) {
+        response.HeaderSet("Date", date_data);
+    }
+
     if (!read_succes) {
         response.BodySet("404 Not Found");
         response.EntityHeadSet("HTTP/1.1", "404", "Not Found");
