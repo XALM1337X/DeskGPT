@@ -197,7 +197,9 @@ std::string CoreServer::HandleHTTPMessage(std::vector<std::string> lines) {
 
     BPHttpMessage response;
     BPHttpMessage msg;
-
+    std::string date_data;
+    std::string date_err;
+    bool index_flag = false;
     if (!msg.Parse(lines)) {
         //TODO:// Return failure to parse request
     }
@@ -205,6 +207,8 @@ std::string CoreServer::HandleHTTPMessage(std::vector<std::string> lines) {
     if (resource == "") {
         std::cout << "Failed to Parse Resource"<< std::endl;
         //TODO:// Return failure to parse entity header resource.
+    } else if (resource == "/index.html") {
+        index_flag = true;
     }
     std::string* file_str = new std::string("");
     bool read_succes = false;    
@@ -236,17 +240,24 @@ std::string CoreServer::HandleHTTPMessage(std::vector<std::string> lines) {
         response.EntityHeadSet("HTTP/1.1", "404", "Not Found");
         response.HeaderSet("Content-Type", "text/plain");
         response.HeaderSet("Content-Length", std::to_string(response.body.size()));        
-        return response.BuildMessageString();
-    }    
+        std::string http_resp = response.BuildMessageString();
+        if (index_flag && this->debug_mode) {
+            std::cout << http_resp << std::endl;
+        }    
 
+        return http_resp;
+    }
 
-    //Add Malicous request parsing here and ban bitches.
-
+    //Add Malicous request santization/rejection
     response.EntityHeadSet("HTTP/1.1", "200", "OK");
     response.HeaderSet("Content-Type", "text/html");
     response.HeaderSet("Content-Length", std::to_string((*file_str).size()));
     response.BodySet(*file_str);
-    return response.BuildMessageString();
+    std::string http_resp = response.BuildMessageString();
+    if (index_flag && this->debug_mode) {
+        std::cout << http_resp << std::endl;
+    }
+    return http_resp;
 }
 
 void CoreServer::SetCommand(std::string command_str) {
